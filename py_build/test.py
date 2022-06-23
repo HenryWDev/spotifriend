@@ -50,9 +50,9 @@ def generate_song_list(userID, accessToken):
     for artist in non_friend_list:
         del friends[artist]
 
+    pprint(friends)
     song_list = dict()
     for friend in friends:
-        print(friends[friend]["playlists"])
         for playlist in friends[friend]["playlists"]:
             get_playlist(playlist["uri"])
 
@@ -70,10 +70,9 @@ returns:
     (dict) dict of all songs in the playlist
 """
 def get_playlist(uri):
-    print(uri)
     playlist_url = uri.split(":")[-1]
-    # print(playlist_url)
     playlist = sp.playlist(playlist_url)
+    # pprint(playlist)
     return playlist
 
 
@@ -107,9 +106,7 @@ def get_friend_list(webAccessToken, userID):
     headers = {"Authorization": f"Bearer {webAccessToken}"}
     response = requests.get(url, headers=headers)
     json_friend_list = json.loads(response.text)
-    print(json_friend_list)
     for friend in json_friend_list["profiles"]:
-        print(friend)
         friend_id = friend["uri"].split(":")[-1]
         friends[friend_id] = dict()
         friends[friend_id]["name"]      = friend["name"]
