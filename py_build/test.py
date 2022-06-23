@@ -38,6 +38,7 @@ args:
 """
 def generate_song_list(userID, accessToken):
     # returns a dict with all friends names/uri's, uri is the key
+    translation_table = dict()
     friends = get_friend_list(accessToken, userID)
     non_friend_list = []
     for friend in friends:
@@ -46,15 +47,22 @@ def generate_song_list(userID, accessToken):
             non_friend_list.append(friend)
         else:
             friends[friend]["playlists"] = result
+            for playlist in result:
+                playlist_uri = playlist["uri"].split(":")[-1]
+                translation_table[playlist_uri] = friend
 
     for artist in non_friend_list:
         del friends[artist]
 
+    pprint(translation_table)
     pprint(friends)
     song_list = dict()
     for friend in friends:
         for playlist in friends[friend]["playlists"]:
             get_playlist(playlist["uri"])
+
+
+
 
 
 def extract_playlists_from_user():
@@ -73,6 +81,7 @@ def get_playlist(uri):
     playlist_url = uri.split(":")[-1]
     playlist = sp.playlist(playlist_url)
     # pprint(playlist)
+
     return playlist
 
 
