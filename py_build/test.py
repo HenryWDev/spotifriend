@@ -79,9 +79,12 @@ def cycle_through_playlists(playlistList):
             FriendID = song['added_by']['id']
             # again any ref to this is just getting info for iterative song
             SongInfoLocation = song['track']
-            # song_hash_combination = SongInfoLocation['name'] + SongInfoLocation["artists"]["artists"]["name"]
+            song_hash_combination = SongInfoLocation['name']
+            for artist in SongInfoLocation["artists"]:
+                song_hash_combination += " " + artist["name"]
+            # print(hashlib.md5(song_hash_combination.encode()))
 
-            quit()
+
             if SongInfoLocation['uri'] not in song_list.keys():
                 #both track and album have available_markets like a bunch of bastards
                 del SongInfoLocation['available_markets']
@@ -95,20 +98,22 @@ def cycle_through_playlists(playlistList):
                                                             }
                                                         }
                 #array must be initalized outside of brackets
-                song_list[SongInfoLocation['uri']]['origins'][FriendID]['PlaylistArray'] = [playlistList[i]['uri']]
+                song_list[SongInfoLocation['uri']]['origins'][FriendID]['PlaylistArray'] = [playlist['uri']]
 
                 #testing to find out where the fuck i get an englishman in new york
                 if song_list[SongInfoLocation['uri']]['song_info']['name'] == 'Englishman In New York':
                     if song_list[SongInfoLocation['uri']]['song_info']['artists'][0]['uri'] == 'Sting':
-                            print(SongInfoLocation['uri'])
+                        pass
+                            # print(SongInfoLocation['uri'])
 
             else:
+                pass
                 #until this point i have been unable to test how
-                song_list[SongInfoLocation['uri']]['origins'][FriendID]['PlaylistArray'].append(playlistList[i]['uri'])
+                song_list[SongInfoLocation['uri']]['origins'][FriendID]['PlaylistArray'].append(playlist['uri'])
 
             #these can be removed and are retained only to help debug
                 dupecount += 1
-                print(song_list[SongInfoLocation['uri']]['origins'],SongInfoLocation['name'])
+                # print(song_list[SongInfoLocation['uri']]['origins'],SongInfoLocation['name'])
 
 
 
@@ -117,9 +122,9 @@ def cycle_through_playlists(playlistList):
     #print(tracklist)
     #print(playlistList)
     print(SongCount)
-    print("dupecount =",dupecount)
+    # print("dupecount =",dupecount)
     #feel free to ask me any questions about any of this. and as always.... like, comment and subscribe.
-    print(song_list['spotify:track:4KFM3A5QF2IMcc6nHsu3Wp']['song_info']['name'], 'spotify:track:4KFM3A5QF2IMcc6nHsu3Wp','################', song_list['spotify:track:4KFM3A5QF2IMcc6nHsu3Wp'])
+    # print(song_list['spotify:track:4KFM3A5QF2IMcc6nHsu3Wp']['song_info']['name'], 'spotify:track:4KFM3A5QF2IMcc6nHsu3Wp','################', song_list['spotify:track:4KFM3A5QF2IMcc6nHsu3Wp'])
     # print(song_list['spotify:track:1yrNoXJopuBtsL5Vj62ESi']['song_info']['name'], 'spotify:track:1yrNoXJopuBtsL5Vj62ESi','################',song_list['spotify:track:1yrNoXJopuBtsL5Vj62ESi'])
     # print( song_list['spotify:track:7bWKgK83QNd87DY3bjdP8n']['song_info']['name'], 'spotify:track:7bWKgK83QNd87DY3bjdP8n','################',song_list['spotify:track:7bWKgK83QNd87DY3bjdP8n'])
 
