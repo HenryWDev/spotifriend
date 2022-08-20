@@ -67,8 +67,6 @@ def get_all_playlists(friends):
 
 def cycle_through_playlists(playlistList):
     song_list = dict()
-
-
     # playlistList is a list of all the returned get_playlist things in one place, so each iteration is a new playlist
     for playlist in playlistList:
         tracklist = playlist['tracks']
@@ -83,11 +81,11 @@ def cycle_through_playlists(playlistList):
             song_hash = hashlib.md5(song_hash_combination.encode()).hexdigest()
 
             if song_hash not in song_list.keys():
-                #both track and album have available_markets like a bunch of bastards
+                # both track and album have available_markets like a bunch of bastards
                 del SongInfoLocation['available_markets']
                 del SongInfoLocation['album']['available_markets']
 
-                #initizaliation of the song list, with URI as the key
+                # initizaliation of the song list, with URI as the key
                 song_list[song_hash] =    {
                                                         'song_info' : SongInfoLocation,
                                                         'origins' : {
@@ -101,7 +99,6 @@ def cycle_through_playlists(playlistList):
                 if song_list[song_hash]['song_info']['name'] == 'Englishman In New York':
                     print(song_hash)
 
-
             else:
                 #until this point i have been unable to test how
                 if FriendID not in song_list[song_hash]['origins'].keys():
@@ -109,9 +106,8 @@ def cycle_through_playlists(playlistList):
                     song_list[song_hash]['origins'][FriendID]["PlaylistArray"] = [playlist['uri']]
                 else:
                     # print(song_list[song_hash]['origins'][FriendID]['PlaylistArray'])
-                    song_list[song_hash]['origins'][FriendID]['PlaylistArray'].append(playlist['uri'])
-
-    # print(song_list)
+                    if playlist['uri'] not in song_list[song_hash]['origins'][FriendID]['PlaylistArray']:
+                        song_list[song_hash]['origins'][FriendID]['PlaylistArray'].append(playlist['uri'])
 
 
 """
