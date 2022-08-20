@@ -2,7 +2,7 @@ import requests
 import json
 import configparser
 import spotipy
-import random
+import hashlib
 from spotipy.oauth2 import SpotifyOAuth
 from pprint import pprint
 
@@ -53,37 +53,35 @@ def generate_song_list(userID, accessToken):
     for artist in non_friend_list:
         del friends[artist]
 
-    #i made these comments rather than delete them because i didnt want to hurt your feelings
-    #pprint(translation_table)
-    #pprint(friends)
+    playlistList = get_all_playlists(friends)
+    cycle_through_playlists(playlistList)
+
+def get_all_playlists(friends):
     playlistList = []
     for friend in friends:
         for playlist in friends[friend]["playlists"]:
             playlistList.append(get_playlist(playlist["uri"]))
-    cycle_through_playlists(playlistList)
+    return playlistList
 
 def cycle_through_playlists(playlistList):
-    #this was moved from genearte song list because i wanted a function i could call my own.
     song_list = dict()
 
-    #used to show me how many things there are and also to make sure we dont overwrite songs when we start a new playlist
-    SongCount = 0
-    #vibes only
+    # vibes only
     dupecount = 0
 
-#playlistList is a list of all the returned get_playlist things in one place, so each iteration is a new playlist
+    # playlistList is a list of all the returned get_playlist things in one place, so each iteration is a new playlist
     for i in range(0,len(playlistList)):
-        #shortcuts for the numbnuts (this is used to access all info except playlist name)
+        # shortcuts for the numbnuts (this is used to access all info except playlist name)
         tracklist = (playlistList[i]['tracks'])
 
-        #iterating through each song in the playlist
+        # iterating through each song in the playlist
         for ii in range(0,len(tracklist['items'])):
-            #friend ID shortcut
+            # friend ID shortcut
             FriendID = tracklist['items'][ii]['added_by']['id']
-            #again any ref to this is just getting info for iterative song
+            # again any ref to this is just getting info for iterative song
             SongInfoLocation = tracklist['items'][ii]['track']
 
-            #BRAND NEW PENIS INSPECTION ZONE!!! (the zone is new, the penises are not)
+            # BRAND NEW PENIS INSPECTION ZONE!!! (the zone is new, the penises are not)
             if SongInfoLocation['uri'] not in song_list.keys():
 
                 #both track and album have available_markets like a bunch of bastards
@@ -99,8 +97,7 @@ def cycle_through_playlists(playlistList):
                 }
                 #array must be initalized outside of brackets
                 song_list[SongInfoLocation['uri']]['origins'][FriendID]['PlaylistArray'] = [playlistList[i]['uri']]
-                #debugging, can be removed
-                SongCount +=1
+
                 #testing to find out where the fuck i get an englishman in new york
                 if song_list[SongInfoLocation['uri']]['song_info']['name'] == 'Englishman In New York':
                     if song_list[SongInfoLocation['uri']]['song_info']['artists'][0]['uri'] == 'Sting':
@@ -126,10 +123,6 @@ def cycle_through_playlists(playlistList):
     print(song_list['spotify:track:4KFM3A5QF2IMcc6nHsu3Wp']['song_info']['name'], 'spotify:track:4KFM3A5QF2IMcc6nHsu3Wp','################', song_list['spotify:track:4KFM3A5QF2IMcc6nHsu3Wp'])
     # print(song_list['spotify:track:1yrNoXJopuBtsL5Vj62ESi']['song_info']['name'], 'spotify:track:1yrNoXJopuBtsL5Vj62ESi','################',song_list['spotify:track:1yrNoXJopuBtsL5Vj62ESi'])
     # print( song_list['spotify:track:7bWKgK83QNd87DY3bjdP8n']['song_info']['name'], 'spotify:track:7bWKgK83QNd87DY3bjdP8n','################',song_list['spotify:track:7bWKgK83QNd87DY3bjdP8n'])
-
-def extract_playlists_from_user():
-    pass
-
 
 
 """
