@@ -82,38 +82,37 @@ def cycle_through_playlists(playlistList):
             song_hash_combination = SongInfoLocation['name']
             for artist in SongInfoLocation["artists"]:
                 song_hash_combination += " " + artist["name"]
-            # print(hashlib.md5(song_hash_combination.encode()))
+            song_hash = hashlib.md5(song_hash_combination.encode()).hexdigest()
 
-
-            if SongInfoLocation['uri'] not in song_list.keys():
+            if song_hash not in song_list.keys():
                 #both track and album have available_markets like a bunch of bastards
                 del SongInfoLocation['available_markets']
                 del SongInfoLocation['album']['available_markets']
 
                 #initizaliation of the song list, with URI as the key
-                song_list[SongInfoLocation['uri']] =    {
+                song_list[song_hash] =    {
                                                         'song_info' : SongInfoLocation,
                                                         'origins' : {
                                                             FriendID : {}
                                                             }
                                                         }
                 #array must be initalized outside of brackets
-                song_list[SongInfoLocation['uri']]['origins'][FriendID]['PlaylistArray'] = [playlist['uri']]
+                song_list[song_hash]['origins'][FriendID]['PlaylistArray'] = [playlist['uri']]
 
                 #testing to find out where the fuck i get an englishman in new york
-                if song_list[SongInfoLocation['uri']]['song_info']['name'] == 'Englishman In New York':
-                    if song_list[SongInfoLocation['uri']]['song_info']['artists'][0]['uri'] == 'Sting':
+                if song_list[song_hash]['song_info']['name'] == 'Englishman In New York':
+                    if song_list[song_hash]['song_info']['artists'][0]['uri'] == 'Sting':
                         pass
-                            # print(SongInfoLocation['uri'])
+                            # print(song_hash)
 
             else:
                 pass
                 #until this point i have been unable to test how
-                song_list[SongInfoLocation['uri']]['origins'][FriendID]['PlaylistArray'].append(playlist['uri'])
+                song_list[song_hash]['origins'][FriendID]['PlaylistArray'].append(playlist['uri'])
 
             #these can be removed and are retained only to help debug
                 dupecount += 1
-                # print(song_list[SongInfoLocation['uri']]['origins'],SongInfoLocation['name'])
+                # print(song_list[song_hash]['origins'],SongInfoLocation['name'])
 
 
 
