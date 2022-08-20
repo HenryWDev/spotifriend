@@ -2,10 +2,11 @@ import requests
 import json
 import configparser
 import spotipy
+import random
 from spotipy.oauth2 import SpotifyOAuth
 from pprint import pprint
 
-SPOTIPY_REDIRECT_URI="http://127.0.0.1:9090"
+SPOTIPY_REDIRECT_URI="http://localhost:7865/"
 SCOPE = "user-follow-read"
 
 config = configparser.ConfigParser()
@@ -13,9 +14,7 @@ config.read('config.ini')
 
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=config["creds"]["SPOTIPY_CLIENT_ID"],
                                                client_secret=config["creds"]["SPOTIPY_CLIENT_SECRET"],
-                                               redirect_uri=SPOTIPY_REDIRECT_URI,
-                                               scope=SCOPE))
-
+                                               redirect_uri=SPOTIPY_REDIRECT_URI))
 # entry
 def maine():
     userID = get_UserId()
@@ -54,19 +53,83 @@ def generate_song_list(userID, accessToken):
     for artist in non_friend_list:
         del friends[artist]
 
-    pprint(translation_table)
-    pprint(friends)
-    song_list = dict()
+    #i made these comments rather than delete them because i didnt want to hurt your feelings
+    #pprint(translation_table)
+    #pprint(friends)
+    playlistList = []
     for friend in friends:
         for playlist in friends[friend]["playlists"]:
-            get_playlist(playlist["uri"])
+            playlistList.append(get_playlist(playlist["uri"]))
+    cycle_through_playlists(playlistList)
+
+def cycle_through_playlists(playlistList):
+    #this was moved from genearte song list because i wanted a function i could call my own.
+    song_list = dict()
+
+    #used to show me how many things there are and also to make sure we dont overwrite songs when we start a new playlist
+    SongCount = 0
+    #vibes only
+    dupecount = 0
+
+#playlistList is a list of all the returned get_playlist things in one place, so each iteration is a new playlist
+    for i in range(0,len(playlistList)):
+        #shortcuts for the numbnuts (this is used to access all info except playlist name)
+        tracklist = (playlistList[i]['tracks'])
+
+        #iterating through each song in the playlist
+        for ii in range(0,len(tracklist['items'])):
+            #friend ID shortcut
+            FriendID = tracklist['items'][ii]['added_by']['id']
+            #again any ref to this is just getting info for iterative song
+            SongInfoLocation = tracklist['items'][ii]['track']
+
+            #BRAND NEW PENIS INSPECTION ZONE!!! (the zone is new, the penises are not)
+            if SongInfoLocation['uri'] not in song_list.keys():
+
+                #both track and album have available_markets like a bunch of bastards
+                del SongInfoLocation['available_markets']
+                del SongInfoLocation['album']['available_markets']
+
+                #initizaliation of the song list, with URI as the key
+                song_list[SongInfoLocation['uri']] = {
+                'song_info' : SongInfoLocation,
+                'origins' : {
+                    FriendID : {}
+                    }
+                }
+                #array must be initalized outside of brackets
+                song_list[SongInfoLocation['uri']]['origins'][FriendID]['PlaylistArray'] = [playlistList[i]['uri']]
+                #debugging, can be removed
+                SongCount +=1
+                #testing to find out where the fuck i get an englishman in new york
+                if song_list[SongInfoLocation['uri']]['song_info']['name'] == 'Englishman In New York':
+                    if song_list[SongInfoLocation['uri']]['song_info']['artists'][0]['uri'] == 'Sting':
+                            print(SongInfoLocation['uri'])
+
+            else:
+                #until this point i have been unable to test how
+                song_list[SongInfoLocation['uri']]['origins'][FriendID]['PlaylistArray'].append(playlistList[i]['uri'])
+
+            #these can be removed and are retained only to help debug
+                dupecount += 1
+                print(song_list[SongInfoLocation['uri']]['origins'],SongInfoLocation['name'])
 
 
 
-
+################### this section is just a bunch of print statements i use to measure my self worth as a human being
+    print(song_list)
+    #print(tracklist)
+    #print(playlistList)
+    print(SongCount)
+    print("dupecount =",dupecount)
+    #feel free to ask me any questions about any of this. and as always.... like, comment and subscribe.
+    print(song_list['spotify:track:4KFM3A5QF2IMcc6nHsu3Wp']['song_info']['name'], 'spotify:track:4KFM3A5QF2IMcc6nHsu3Wp','################', song_list['spotify:track:4KFM3A5QF2IMcc6nHsu3Wp'])
+    # print(song_list['spotify:track:1yrNoXJopuBtsL5Vj62ESi']['song_info']['name'], 'spotify:track:1yrNoXJopuBtsL5Vj62ESi','################',song_list['spotify:track:1yrNoXJopuBtsL5Vj62ESi'])
+    # print( song_list['spotify:track:7bWKgK83QNd87DY3bjdP8n']['song_info']['name'], 'spotify:track:7bWKgK83QNd87DY3bjdP8n','################',song_list['spotify:track:7bWKgK83QNd87DY3bjdP8n'])
 
 def extract_playlists_from_user():
     pass
+
 
 
 """
@@ -80,8 +143,6 @@ returns:
 def get_playlist(uri):
     playlist_url = uri.split(":")[-1]
     playlist = sp.playlist(playlist_url)
-    # pprint(playlist)
-
     return playlist
 
 
