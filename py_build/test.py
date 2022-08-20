@@ -56,12 +56,14 @@ def generate_song_list(userID, accessToken):
     playlistList = get_all_playlists(friends)
     cycle_through_playlists(playlistList)
 
+
 def get_all_playlists(friends):
     playlistList = []
     for friend in friends:
         for playlist in friends[friend]["playlists"]:
             playlistList.append(get_playlist(playlist["uri"]))
     return playlistList
+
 
 def cycle_through_playlists(playlistList):
     song_list = dict()
@@ -70,32 +72,28 @@ def cycle_through_playlists(playlistList):
     dupecount = 0
 
     # playlistList is a list of all the returned get_playlist things in one place, so each iteration is a new playlist
-    for i in range(0,len(playlistList)):
-        # shortcuts for the numbnuts (this is used to access all info except playlist name)
-        tracklist = (playlistList[i]['tracks'])
-        print(e)
+    for playlist in playlistList:
+        tracklist = playlist['tracks']
 
-        # iterating through each song in the playlist
-        for ii in range(0,len(tracklist['items'])):
-            # friend ID shortcut
-            FriendID = tracklist['items'][ii]['added_by']['id']
+        for song in tracklist['items']:
+            FriendID = song['added_by']['id']
             # again any ref to this is just getting info for iterative song
-            SongInfoLocation = tracklist['items'][ii]['track']
+            SongInfoLocation = song['track']
+            # song_hash_combination = SongInfoLocation['name'] + SongInfoLocation["artists"]["artists"]["name"]
 
-            # BRAND NEW PENIS INSPECTION ZONE!!! (the zone is new, the penises are not)
+            quit()
             if SongInfoLocation['uri'] not in song_list.keys():
-
                 #both track and album have available_markets like a bunch of bastards
                 del SongInfoLocation['available_markets']
                 del SongInfoLocation['album']['available_markets']
 
                 #initizaliation of the song list, with URI as the key
-                song_list[SongInfoLocation['uri']] = {
-                'song_info' : SongInfoLocation,
-                'origins' : {
-                    FriendID : {}
-                    }
-                }
+                song_list[SongInfoLocation['uri']] =    {
+                                                        'song_info' : SongInfoLocation,
+                                                        'origins' : {
+                                                            FriendID : {}
+                                                            }
+                                                        }
                 #array must be initalized outside of brackets
                 song_list[SongInfoLocation['uri']]['origins'][FriendID]['PlaylistArray'] = [playlistList[i]['uri']]
 
