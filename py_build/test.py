@@ -68,8 +68,6 @@ def get_all_playlists(friends):
 def cycle_through_playlists(playlistList):
     song_list = dict()
 
-    # vibes only
-    dupecount = 0
 
     # playlistList is a list of all the returned get_playlist things in one place, so each iteration is a new playlist
     for playlist in playlistList:
@@ -101,31 +99,19 @@ def cycle_through_playlists(playlistList):
 
                 #testing to find out where the fuck i get an englishman in new york
                 if song_list[song_hash]['song_info']['name'] == 'Englishman In New York':
-                    if song_list[song_hash]['song_info']['artists'][0]['uri'] == 'Sting':
-                        pass
-                            # print(song_hash)
+                    print(song_hash)
+
 
             else:
-                pass
                 #until this point i have been unable to test how
-                song_list[song_hash]['origins'][FriendID]['PlaylistArray'].append(playlist['uri'])
+                if FriendID not in song_list[song_hash]['origins'].keys():
+                    song_list[song_hash]['origins'][FriendID] = {}
+                    song_list[song_hash]['origins'][FriendID]["PlaylistArray"] = [playlist['uri']]
+                else:
+                    # print(song_list[song_hash]['origins'][FriendID]['PlaylistArray'])
+                    song_list[song_hash]['origins'][FriendID]['PlaylistArray'].append(playlist['uri'])
 
-            #these can be removed and are retained only to help debug
-                dupecount += 1
-                # print(song_list[song_hash]['origins'],SongInfoLocation['name'])
-
-
-
-################### this section is just a bunch of print statements i use to measure my self worth as a human being
-    print(song_list)
-    #print(tracklist)
-    #print(playlistList)
-    print(SongCount)
-    # print("dupecount =",dupecount)
-    #feel free to ask me any questions about any of this. and as always.... like, comment and subscribe.
-    # print(song_list['spotify:track:4KFM3A5QF2IMcc6nHsu3Wp']['song_info']['name'], 'spotify:track:4KFM3A5QF2IMcc6nHsu3Wp','################', song_list['spotify:track:4KFM3A5QF2IMcc6nHsu3Wp'])
-    # print(song_list['spotify:track:1yrNoXJopuBtsL5Vj62ESi']['song_info']['name'], 'spotify:track:1yrNoXJopuBtsL5Vj62ESi','################',song_list['spotify:track:1yrNoXJopuBtsL5Vj62ESi'])
-    # print( song_list['spotify:track:7bWKgK83QNd87DY3bjdP8n']['song_info']['name'], 'spotify:track:7bWKgK83QNd87DY3bjdP8n','################',song_list['spotify:track:7bWKgK83QNd87DY3bjdP8n'])
+    # print(song_list)
 
 
 """
