@@ -73,6 +73,7 @@ def cycle_through_playlists(playlistList):
     for i in range(0,len(playlistList)):
         # shortcuts for the numbnuts (this is used to access all info except playlist name)
         tracklist = (playlistList[i]['tracks'])
+        print(e)
 
         # iterating through each song in the playlist
         for ii in range(0,len(tracklist['items'])):
