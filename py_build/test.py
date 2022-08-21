@@ -69,9 +69,14 @@ def cycle_through_playlists(playlistList):
     song_list = dict()
     # playlistList is a list of all the returned get_playlist things in one place, so each iteration is a new playlist
     for playlist in playlistList:
-        tracklist = playlist['tracks']
 
-        for song in tracklist['items']:
+        tracklist = playlist['tracks']['items']
+        next_holder = playlist["tracks"]
+        while next_holder['next']:
+            next_holder = sp.next(next_holder)
+            tracklist.extend(next_holder["items"])
+
+        for song in tracklist:
             FriendID = song['added_by']['id']
             # again any ref to this is just getting info for iterative song
             SongInfoLocation = song['track']
