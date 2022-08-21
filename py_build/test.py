@@ -95,10 +95,6 @@ def cycle_through_playlists(playlistList):
                 #array must be initalized outside of brackets
                 song_list[song_hash]['origins'][FriendID]['PlaylistArray'] = [playlist['uri']]
 
-                #testing to find out where the fuck i get an englishman in new york
-                if song_list[song_hash]['song_info']['name'] == 'Englishman In New York':
-                    print(song_hash)
-
             else:
                 #until this point i have been unable to test how
                 if FriendID not in song_list[song_hash]['origins'].keys():
