@@ -4,6 +4,10 @@ from api_manager import get_song_list
 from spotipy.oauth2 import SpotifyOAuth
 import json
 import urllib.request
+import configparser
+
+config = configparser.ConfigParser()
+config.read("config.ini")
 
 f = open("songlist.json")
 songlist = json.load(f)
@@ -16,9 +20,7 @@ normalisedlist = json.load(f)
 
 MAX_USER_OPTIONS = 5
 
-bot = interactions.Client(
-    token="MTA5NDczMjMwOTc5MTUyMjgyNg.GZQkyY.0ES28LZdRpzNBghpLyGKYpt8-sf2ji4Qgxlw4k"
-)
+bot = interactions.Client(token=config["creds"]["DISCORD_TOKEN"])
 
 
 @bot.command(
