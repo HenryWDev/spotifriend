@@ -1,5 +1,9 @@
 /node_modules
 /package-lock.json
+/py_build/normalised_list.json
+/py_build/people_list.json
+/py_build/playlist_list.json
+/py_build/songlist.json
 /py_build/config.ini
 
 # Byte-compiled / optimized / DLL files

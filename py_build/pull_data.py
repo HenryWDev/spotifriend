@@ -3,8 +3,7 @@ import json
 import configparser
 import spotipy
 import hashlib
-from spotipy.oauth2 import SpotifyOAuth
-from pprint import pprint
+
 
 SPOTIPY_REDIRECT_URI="http://localhost:7865/"
 SCOPE = "user-follow-read"
