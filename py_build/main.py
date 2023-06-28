@@ -5,6 +5,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import json
 import urllib.request
 import configparser
+from pprint import pprint #here it is
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -23,23 +24,42 @@ MAX_USER_OPTIONS = 5
 bot = interactions.Client(token=config["creds"]["DISCORD_TOKEN"])
 
 
+# @bot.command(
+#     name="play_easy",
+#     description="Guess the passed song",
+#     scope="965730825750581288",
+# )
+# async def play_easy(ctx: interactions.CommandContext):
+#     """"""
+
+#     random_user = random.choice(list(normalisedlist.keys()))
+#     random_song = random.choice(normalisedlist[random_user])
+#     # random_song = random.choice(list(songlist.keys()))
+#     urllib.request.urlretrieve(
+#         songlist[random_song]["song_info"]["preview_url"],
+#         "mp3.mp3",
+#     )
+#     embed, buttons = build_game_embed(random_song, "easy")
+#     audio = interactions.api.models.misc.File(filename="mp3.mp3")
+#     await ctx.send(files=audio, embeds=embed, components=buttons)
+
+
 @bot.command(
-    name="play",
-    description="Guess the passed song",
-    scope="965730825750581288",
+    name="play_hard",
+    description="Guess the passed song with limiteed info",
+    scope="830237925303517255",
 )
-async def play(ctx: interactions.CommandContext):
+async def play_hard(ctx: interactions.CommandContext):
     """"""
 
     random_user = random.choice(list(normalisedlist.keys()))
     random_song = random.choice(normalisedlist[random_user])
-    # random_song = random.choice(list(songlist.keys()))
     urllib.request.urlretrieve(
         songlist[random_song]["song_info"]["preview_url"],
-        "mp3.mp3",
+        "song.mp3",
     )
-    embed, buttons = build_game_embed(random_song)
-    audio = interactions.api.models.misc.File(filename="mp3.mp3")
+    embed, buttons = build_game_embed(random_song, "hard")
+    audio = interactions.api.models.misc.File(filename="song.mp3")
     await ctx.send(files=audio, embeds=embed, components=buttons)
 
 
@@ -68,12 +88,80 @@ async def button_5_response(ctx: interactions.CommandContext):
     await button_callback(ctx, 4)
 
 
+@bot.component("button_6")
+async def button_6_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 5)
+
+
+@bot.component("button_7")
+async def button_7_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 6)
+
+
+@bot.component("button_8")
+async def button_8_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 7)
+
+
+@bot.component("button_9")
+async def button_9_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 8)
+
+
+@bot.component("button_10")
+async def button_10_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 9)
+
+
+@bot.component("button_11")
+async def button_11_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 10)
+
+
+@bot.component("button_12")
+async def button_12_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 11)
+
+
+@bot.component("button_13")
+async def button_13_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 12)
+
+
+@bot.component("button_14")
+async def button_14_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 13)
+
+
+@bot.component("button_15")
+async def button_15_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 14)
+
+
+@bot.component("button_16")
+async def button_16_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 15)
+
+
+@bot.component("button_17")
+async def button_17_response(ctx: interactions.CommandContext):
+    await button_callback(ctx, 16)
+
+
+@bot.component("res")
+async def output_res(ctx: interactions.CommandContext):
+    song_id = ctx.message.embeds[0].footer.text
+    await ctx.send(embeds=build_result_embed(songlist[song_id]["origins"], song_id))
+
+
 async def button_callback(ctx, pos):
+    row = pos // 5
+    col = pos % 5
+    # print("oo aaa", pos, row, col)
     res = check_if_correct(
         ctx.message.embeds[0].footer.text,
-        ctx.message.components[0].components[pos].label,
+        ctx.message.components[row].components[col].label,
     )
-    print(res)
     if res:
         add_guess_to_embed(ctx, "✓")
     else:
@@ -85,43 +173,49 @@ async def button_callback(ctx, pos):
 def add_guess_to_embed(ctx: interactions.CommandContext, guess_res):
     already_guessed = False
     user_pos = -1
-    for field in ctx.message.embeds[0].fields:
-        user_pos += 1
-        if field.name == ctx.user.username:
-            already_guessed = True
 
-    if not already_guessed:
-        ctx.message.embeds[0].fields.append(
-            interactions.EmbedField(
-                name=ctx.user.username,
-                value=guess_res + " ",
+    # print(ctx.message.embeds[0].fields)
+    if ctx.message.embeds[0].fields != None:
+        for field in ctx.message.embeds[0].fields:
+            user_pos += 1
+            if field.name == ctx.user.username:
+                already_guessed = True
+                break
+
+        # print(user_pos)
+        if not already_guessed:
+            ctx.message.embeds[0].fields.append(
+                interactions.EmbedField(
+                    name=ctx.user.username,
+                    value=guess_res + " ",
+                )
             )
-        )
-
+        else:
+            ctx.message.embeds[0].fields[user_pos].value = (
+                ctx.message.embeds[0].fields[user_pos].value + guess_res + " "
+            )
     else:
-        ctx.message.embeds[0].fields[user_pos].value = (
-            ctx.message.embeds[0].fields[user_pos].value + guess_res + " "
-        )
+        ctx.message.embeds[0].fields = [
+            (
+                interactions.EmbedField(
+                    name=ctx.user.username,
+                    value=guess_res + " ",
+                )
+            )
+        ]
 
 
 def check_if_correct(song_id, user_selected):
     correct = False
     correct_ids = songlist[song_id]["origins"]
-    print(user_selected, correct_ids)
     for id in correct_ids:
-        print(user_selected, peoplelist[id]["display_name"])
+        # print(peoplelist[id]["display_name"], user_selected)
         if peoplelist[id]["display_name"] == user_selected:
             correct = True
-            print("hit")
-
-    # if correct:
-    #     res = build_result_embed("Correct", songlist[song_id]["origins"])
-    # else:
-    #     res = build_result_embed("Incorrect", songlist[song_id]["origins"])
     return correct
 
 
-def build_result_embed(result, correct_names):
+def build_result_embed(correct_names, song_id):
     embed_fields = []
     for value in correct_names:
         playlist_text = ""
@@ -134,18 +228,25 @@ def build_result_embed(result, correct_names):
             )
         )
 
+    embed_fields.append(
+        interactions.EmbedField(
+            name="Artist", value=songlist[song_id]["song_info"]["artists"][0]["name"]
+        )
+    )
     embed = interactions.Embed(
-        title=result,
+        title=songlist[song_id]["song_info"]["name"],
         fields=embed_fields,
-        description=f"These people listen to that song:",
+        url=songlist[song_id]["song_info"]["external_urls"]["spotify"],
+        description=f"These people listen to this song:",
         color=0x1DB954,
     )
     return embed
 
 
-def build_game_embed(song):
-    counter = 1
+def build_game_embed(song, mode):
+    counter = len(peoplelist.items())
     buttons = []
+
     for friend in songlist[song]["origins"]:
         buttons.append(
             interactions.Button(
@@ -158,10 +259,14 @@ def build_game_embed(song):
     for friend in songlist[song]["origins"]:
         del incorrect_guess_list[friend]
 
-    list_sample = random.sample(
-        list(incorrect_guess_list.values()),
-        MAX_USER_OPTIONS - len(list(songlist[song]["origins"].values())),
-    )
+    if mode == "easy":
+        list_sample = random.sample(
+            list(incorrect_guess_list.values()),
+            MAX_USER_OPTIONS - len(list(songlist[song]["origins"].values())),
+        )
+    else:
+        list_sample = list(incorrect_guess_list.values())
+    # pprint(list_sample)
 
     for person in list_sample:
         buttons.append(
@@ -175,7 +280,7 @@ def build_game_embed(song):
 
     for button in buttons:
         button.custom_id = f"button_{counter}"
-        counter += 1
+        counter -= 1
 
     embed_image = interactions.EmbedImageStruct(
         url=songlist[song]["song_info"]["album"]["images"][0]["url"], height=0, width=0
@@ -189,15 +294,46 @@ def build_game_embed(song):
     embed_footer = interactions.EmbedFooter(
         text=song,
     )
-    embed = interactions.Embed(
-        title=songlist[song]["song_info"]["name"],
-        url=songlist[song]["song_info"]["external_urls"]["spotify"],
-        image=embed_image,
-        color=0x1DB954,
-        footer=embed_footer,
-        fields=[album_field, artist_field],
+
+    actionrow_res = interactions.ActionRow(
+        components=[
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                label="Show result",
+                custom_id="res",
+            )
+        ]
     )
-    return embed, buttons
+
+    actionrows = []
+    counter = 0
+    while buttons != []:
+        actionrows.append(interactions.ActionRow(components=[]))
+        for i in range(5):
+            actionrows[counter].components.append(buttons.pop())
+            if buttons == []:
+                break
+        counter += 1
+
+    actionrows.append(actionrow_res)
+    # print(actionrows)
+
+    if mode == "easy":
+        embed = interactions.Embed(
+            title=songlist[song]["song_info"]["name"],
+            url=songlist[song]["song_info"]["external_urls"]["spotify"],
+            image=embed_image,
+            color=0x1DB954,
+            footer=embed_footer,
+            fields=[album_field, artist_field],
+        )
+    else:
+        embed = interactions.Embed(
+            color=0x1DB954,
+            footer=embed_footer,
+            fields=[],
+        )
+    return embed, actionrows
 
 
 bot.start()
