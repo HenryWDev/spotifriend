@@ -5,7 +5,6 @@ from spotipy.oauth2 import SpotifyOAuth
 import json
 import urllib.request
 import configparser
-from pprint import pprint #here it is
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -24,34 +23,12 @@ MAX_USER_OPTIONS = 5
 bot = interactions.Client(token=config["creds"]["DISCORD_TOKEN"])
 
 
-# @bot.command(
-#     name="play_easy",
-#     description="Guess the passed song",
-#     scope="965730825750581288",
-# )
-# async def play_easy(ctx: interactions.CommandContext):
-#     """"""
-
-#     random_user = random.choice(list(normalisedlist.keys()))
-#     random_song = random.choice(normalisedlist[random_user])
-#     # random_song = random.choice(list(songlist.keys()))
-#     urllib.request.urlretrieve(
-#         songlist[random_song]["song_info"]["preview_url"],
-#         "mp3.mp3",
-#     )
-#     embed, buttons = build_game_embed(random_song, "easy")
-#     audio = interactions.api.models.misc.File(filename="mp3.mp3")
-#     await ctx.send(files=audio, embeds=embed, components=buttons)
-
-
 @bot.command(
-    name="play_hard",
+    name="play",
     description="Guess the passed song with limiteed info",
     scope="830237925303517255",
 )
 async def play_hard(ctx: interactions.CommandContext):
-    """"""
-
     random_user = random.choice(list(normalisedlist.keys()))
     random_song = random.choice(normalisedlist[random_user])
     urllib.request.urlretrieve(
