@@ -3,6 +3,7 @@ import json
 import configparser
 import hashlib
 from alive_progress import alive_bar
+import spotipy
 from pprint import pprint
 
 config = configparser.ConfigParser()
@@ -10,10 +11,10 @@ config.read("config.ini")
 
 
 # # entry
-# def maine():
-#     userID = get_UserId()
-#     accessToken =  get_WebAccessToken(config["creds"]["spDcCookie"])
-#     generate_song_list(userID, accessToken)
+def main():
+    userID = get_UserId()
+    accessToken = get_WebAccessToken(config["creds"]["spDcCookie"])
+    generate_song_list(userID, accessToken)
 
 
 def get_song_list(sp):
@@ -38,10 +39,11 @@ args:
 
 
 def generate_song_list(userID, accessToken, sp):
+    print("generate song list")
     # returns a dict with all friends names/uri's, uri is the key
     translation_table = dict()
     friends = get_friend_list(accessToken, userID)
-
+    print(friends)
     non_friend_list = []
     for friend in friends:
         print(friend)
@@ -68,7 +70,10 @@ def get_all_playlists(friends, sp):
         for friend in friends:
             bar()
             for playlist in friends[friend]["playlists"]:
-                playlistList.append(get_playlist(playlist["uri"], sp))
+                if playlist["uri"] == "spotify:playlist:2BVDv3GqL0uOJwaXIFfW29":
+                    pass
+                else:
+                    playlistList.append(get_playlist(playlist["uri"], sp))
     return playlistList
 
 
@@ -108,8 +113,8 @@ def cycle_through_playlists(playlistList, sp):
 
                     if song_hash not in song_list.keys():
                         # both track and album have available_markets like a bunch of bastards
-                        del SongInfoLocation["available_markets"]
-                        del SongInfoLocation["album"]["available_markets"]
+                        # del SongInfoLocation["available_markets"]
+                        # del SongInfoLocation["album"]["available_markets"]
 
                         # initizaliation of the song list, with URI as the key
                         song_list[song_hash] = {
@@ -139,7 +144,224 @@ def cycle_through_playlists(playlistList, sp):
                                 song_list[song_hash]["origins"][FriendID][
                                     "PlaylistArray"
                                 ].append(playlist["uri"])
+
+    check_previews(sp, song_list)
     return song_list, people_list, playlist_list
+
+
+def check_previews(sp: spotipy.Spotify, song_list):
+    markets = [
+        "AD",
+        "AE",
+        "AG",
+        "AL",
+        "AM",
+        "AO",
+        "AR",
+        "AT",
+        "AU",
+        "AZ",
+        "BA",
+        "BB",
+        "BD",
+        "BE",
+        "BF",
+        "BG",
+        "BH",
+        "BI",
+        "BJ",
+        "BN",
+        "BO",
+        "BR",
+        "BS",
+        "BT",
+        "BW",
+        "BY",
+        "BZ",
+        "CA",
+        "CD",
+        "CG",
+        "CH",
+        "CI",
+        "CL",
+        "CM",
+        "CO",
+        "CR",
+        "CV",
+        "CW",
+        "CY",
+        "CZ",
+        "DE",
+        "DJ",
+        "DK",
+        "DM",
+        "DO",
+        "DZ",
+        "EC",
+        "EE",
+        "EG",
+        "ES",
+        "ET",
+        "FI",
+        "FJ",
+        "FM",
+        "FR",
+        "GA",
+        "GB",
+        "GD",
+        "GE",
+        "GH",
+        "GM",
+        "GN",
+        "GQ",
+        "GR",
+        "GT",
+        "GW",
+        "GY",
+        "HK",
+        "HN",
+        "HR",
+        "HT",
+        "HU",
+        "ID",
+        "IE",
+        "IL",
+        "IN",
+        "IQ",
+        "IS",
+        "IT",
+        "JM",
+        "JO",
+        "JP",
+        "KE",
+        "KG",
+        "KH",
+        "KI",
+        "KM",
+        "KN",
+        "KR",
+        "KW",
+        "KZ",
+        "LA",
+        "LB",
+        "LC",
+        "LI",
+        "LK",
+        "LR",
+        "LS",
+        "LT",
+        "LU",
+        "LV",
+        "LY",
+        "MA",
+        "MC",
+        "MD",
+        "ME",
+        "MG",
+        "MH",
+        "MK",
+        "ML",
+        "MN",
+        "MO",
+        "MR",
+        "MT",
+        "MU",
+        "MV",
+        "MW",
+        "MX",
+        "MY",
+        "MZ",
+        "NA",
+        "NE",
+        "NG",
+        "NI",
+        "NL",
+        "NO",
+        "NP",
+        "NR",
+        "NZ",
+        "OM",
+        "PA",
+        "PE",
+        "PG",
+        "PH",
+        "PK",
+        "PL",
+        "PS",
+        "PT",
+        "PW",
+        "PY",
+        "QA",
+        "RO",
+        "RS",
+        "RW",
+        "SA",
+        "SB",
+        "SC",
+        "SE",
+        "SG",
+        "SI",
+        "SK",
+        "SL",
+        "SM",
+        "SN",
+        "SR",
+        "ST",
+        "SV",
+        "SZ",
+        "TD",
+        "TG",
+        "TH",
+        "TJ",
+        "TL",
+        "TN",
+        "TO",
+        "TR",
+        "TT",
+        "TV",
+        "TW",
+        "TZ",
+        "UA",
+        "UG",
+        "US",
+        "UY",
+        "UZ",
+        "VC",
+        "VE",
+        "VN",
+        "VU",
+        "WS",
+        "XK",
+        "ZA",
+        "ZM",
+        "ZW",
+    ]
+    to_delete = []
+    for key, song in song_list.items():
+        pprint(song["song_info"])
+        quit()
+        if song["song_info"]["preview_url"] is None:
+            orig = song
+            print(f"Checking {song['song_info']['name']}")
+            for market_iter in markets:
+                print(market_iter, orig["song_info"]["uri"])
+                try:
+                    get_song = sp.track(orig["song_info"]["uri"], market=market_iter)
+                except:
+                    break
+                if get_song["preview_url"] is not None:
+                    song["song_info"]["preview_url"] = get_song["preview_url"]
+                    break
+            if song["song_info"]["preview_url"] is None:
+                print("no prev found")
+                to_delete.append(key)
+        del song["song_info"]["available_markets"]
+        del song["song_info"]["album"]["available_markets"]
+
+    for key in to_delete:
+        del song_list[key]
+
+    return song_list
 
 
 """
@@ -225,23 +447,6 @@ def get_friend_list(webAccessToken, userID):
     }
 
 
-# def get_friend_list(webAccessToken, userID):
-#     friends = dict()
-#     url = f"https://spclient.wg.spotify.com/user-profile-view/v3/profile/{userID}/following"
-#     headers = {"Authorization": f"Bearer {webAccessToken}"}
-#     response = requests.get(url, headers=headers)
-#     print(response)
-#     json_friend_list = json.loads(response.text)
-#     for friend in json_friend_list["profiles"]:
-#         friend_id = friend["uri"].split(":")[-1]
-#         friends[friend_id] = dict()
-#         friends[friend_id]["name"] = friend["name"]
-#         if "image_url" in friend:
-#             friends[friend_id]["image_url"] = friend["image_url"]
-#     pprint(friends)
-#     return friends
-
-
 """
 get all playlists from a user
 
@@ -254,7 +459,7 @@ returns:
 
 
 def get_playlist_from_user(webAccessToken, userID):
-    url = f"https://spclient.wg.spotify.com/user-profile-view/v3/profile/{userID}?playlist_limit=10&artist_limit=10&episode_limit=10&market=from_token"
+    url = f"https://spclient.wg.spotify.com/user-profile-view/v3/profile/{userID}?playlist_limit=40&artist_limit=30&episode_limit=10&market=SE"
     headers = {"Authorization": f"Bearer {webAccessToken}"}
     response = requests.get(url, headers=headers)
     try:

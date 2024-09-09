@@ -25,7 +25,6 @@ def maine():
             scope=SCOPE,
         )
     )
-
     song_list, people_list, playlist_list = get_song_list(sp)
 
     random_song = random.choice(list(song_list.values()))
