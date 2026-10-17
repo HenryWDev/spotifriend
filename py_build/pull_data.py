@@ -7,7 +7,7 @@ import hashlib
 import logging
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename="spotipy.log", level=logging.DEBUG)
+logging.basicConfig(filename="spotipy.log", level=logging.INFO)
 
 SPOTIPY_REDIRECT_URI = "http://localhost:8080"
 SCOPE = "user-follow-read"
@@ -49,7 +49,10 @@ def generate_song_list(userID, accessToken):
     # returns a dict with all friends names/uri's, uri is the key
     translation_table = dict()
     logger.info("Grabbing friends list")
-    friends = get_friend_list(accessToken, userID)
+    # friends = get_friend_list(accessToken, userID)
+
+    f = open("users.json")
+    friends = json.load(f)
     logger.info("Friends List: %s", friends)
     non_friend_list = []
     for friend in friends:
@@ -80,25 +83,33 @@ def get_all_playlists(friends):
 
 def cycle_through_playlists(playlistList):
     song_list = dict()
-    # playlistList is a list of all the returned get_playlist things in one place, so each iteration is a new playlist
+    # Iterate through each playlist
     for playlist in playlistList:
         logging.info("Grabbing from playlist %s", playlist["name"])
-        quit()
 
         tracklist = playlist["tracks"]["items"]
-        next_holder = playlist["tracks"]
-        while next_holder["next"]:
-            next_holder = sp.next(next_holder)
-            tracklist.extend(next_holder["items"])
+        tracklist_cursor = playlist["tracks"]
+        while tracklist_cursor["next"]:
+            tracklist_cursor = sp.next(tracklist_cursor)
+            tracklist.extend(tracklist_cursor["items"])
 
         for song in tracklist:
-            FriendID = song["added_by"]["id"]
-            # again any ref to this is just getting info for iterative song
-            SongInfoLocation = song["track"]
-            song_hash_combination = SongInfoLocation["name"]
-            for artist in SongInfoLocation["artists"]:
-                song_hash_combination += " " + artist["name"]
-            song_hash = hashlib.md5(song_hash_combination.encode()).hexdigest()
+
+            try:
+                FriendID = song["added_by"]["id"]
+                # again any ref to this is just getting info for iterative song
+                # I think we did this because the same song can be published multiple times, but do we care that much?
+                SongInfoLocation = song["track"]
+                song_hash_combination = SongInfoLocation["name"]
+
+                if len(SongInfoLocation["artists"]) == 0:
+                    logging.error("failed to parse %s", song)
+                    continue
+                for artist in SongInfoLocation["artists"]:
+                    song_hash_combination += " " + artist["name"]
+                song_hash = hashlib.md5(song_hash_combination.encode()).hexdigest()
+            except TypeError:
+                logging.error("failed to parse %s", song)
 
             if song_hash not in song_list.keys():
                 # both track and album have available_markets
@@ -206,7 +217,7 @@ returns:
 
 
 def get_playlist_from_user(webAccessToken, userID):
-    url = f"https://spclient.wg.spotify.com/user-profile-view/v3/profile/{userID}?playlist_limit=10&artist_limit=10&episode_limit=10&market=from_token"
+    url = f"https://spclient.wg.spotify.com/user-profile-view/v3/profile/{userID}?playlist_limit=20&artist_limit=10&episode_limit=10&market=from_token"
     logger.debug("requesting url %s", url)
     headers = {"Authorization": f"Bearer {webAccessToken}"}
     response = requests.get(url, headers=headers)
@@ -217,7 +228,7 @@ def get_playlist_from_user(webAccessToken, userID):
         else:
             return {}
     except ValueError as e:
-        logger.error("error getting playlist from user: %s")
+        logger.error("error getting playlist from user: %s", userID)
         return 0
 
 

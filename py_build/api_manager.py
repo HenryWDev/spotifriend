@@ -10,11 +10,24 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 
 
+SPOTIPY_REDIRECT_URI = "http://localhost:8080"
+SCOPE = "user-follow-read"
+
+
+sp = spotipy.Spotify(
+    auth_manager=spotipy.SpotifyOAuth(
+        client_id=config["creds"]["SPOTIPY_CLIENT_ID"],
+        client_secret=config["creds"]["SPOTIPY_CLIENT_SECRET"],
+        redirect_uri=SPOTIPY_REDIRECT_URI,
+    )
+)
+
+
 # # entry
 def main():
-    userID = get_UserId()
+    userID = get_UserId(sp)
     accessToken = get_WebAccessToken(config["creds"]["spDcCookie"])
-    generate_song_list(userID, accessToken)
+    generate_song_list(userID, accessToken, sp)
 
 
 def get_song_list(sp):
@@ -105,45 +118,50 @@ def cycle_through_playlists(playlistList, sp):
                     people_list[FriendID] = sp.user(FriendID)
                 # again any ref to this is just getting info for iterative song
                 SongInfoLocation = song["track"]
-                if SongInfoLocation != None:
-                    song_hash_combination = SongInfoLocation["name"]
-                    for artist in SongInfoLocation["artists"]:
-                        song_hash_combination += " " + artist["name"]
-                    song_hash = hashlib.md5(song_hash_combination.encode()).hexdigest()
+                try:
+                    if SongInfoLocation != None:
+                        song_hash_combination = SongInfoLocation["name"]
+                        for artist in SongInfoLocation["artists"]:
+                            song_hash_combination += " " + artist["name"]
+                        song_hash = hashlib.md5(
+                            song_hash_combination.encode()
+                        ).hexdigest()
 
-                    if song_hash not in song_list.keys():
-                        # both track and album have available_markets like a bunch of bastards
-                        # del SongInfoLocation["available_markets"]
-                        # del SongInfoLocation["album"]["available_markets"]
+                        if song_hash not in song_list.keys():
+                            # both track and album have available_markets like a bunch of bastards
+                            # del SongInfoLocation["available_markets"]
+                            # del SongInfoLocation["album"]["available_markets"]
 
-                        # initizaliation of the song list, with URI as the key
-                        song_list[song_hash] = {
-                            "song_info": SongInfoLocation,
-                            "origins": {FriendID: {}},
-                        }
-                        # array must be initalized outside of brackets
-                        song_list[song_hash]["origins"][FriendID]["PlaylistArray"] = [
-                            playlist["uri"]
-                        ]
-
-                    else:
-                        # until this point i have been unable to test how
-                        if FriendID not in song_list[song_hash]["origins"].keys():
-                            song_list[song_hash]["origins"][FriendID] = {}
+                            # initizaliation of the song list, with URI as the key
+                            song_list[song_hash] = {
+                                "song_info": SongInfoLocation,
+                                "origins": {FriendID: {}},
+                            }
+                            # array must be initalized outside of brackets
                             song_list[song_hash]["origins"][FriendID][
                                 "PlaylistArray"
                             ] = [playlist["uri"]]
+
                         else:
-                            # print(song_list[song_hash]['origins'][FriendID]['PlaylistArray'])
-                            if (
-                                playlist["uri"]
-                                not in song_list[song_hash]["origins"][FriendID][
-                                    "PlaylistArray"
-                                ]
-                            ):
+                            # until this point i have been unable to test how
+                            if FriendID not in song_list[song_hash]["origins"].keys():
+                                song_list[song_hash]["origins"][FriendID] = {}
                                 song_list[song_hash]["origins"][FriendID][
                                     "PlaylistArray"
-                                ].append(playlist["uri"])
+                                ] = [playlist["uri"]]
+                            else:
+                                # print(song_list[song_hash]['origins'][FriendID]['PlaylistArray'])
+                                if (
+                                    playlist["uri"]
+                                    not in song_list[song_hash]["origins"][FriendID][
+                                        "PlaylistArray"
+                                    ]
+                                ):
+                                    song_list[song_hash]["origins"][FriendID][
+                                        "PlaylistArray"
+                                    ].append(playlist["uri"])
+                except TypeError:
+                    print("oh no!")
 
     check_previews(sp, song_list)
     return song_list, people_list, playlist_list
@@ -339,24 +357,28 @@ def check_previews(sp: spotipy.Spotify, song_list):
     to_delete = []
     for key, song in song_list.items():
         pprint(song["song_info"])
-        quit()
-        if song["song_info"]["preview_url"] is None:
-            orig = song
-            print(f"Checking {song['song_info']['name']}")
-            for market_iter in markets:
-                print(market_iter, orig["song_info"]["uri"])
-                try:
-                    get_song = sp.track(orig["song_info"]["uri"], market=market_iter)
-                except:
-                    break
-                if get_song["preview_url"] is not None:
-                    song["song_info"]["preview_url"] = get_song["preview_url"]
-                    break
+        try:
             if song["song_info"]["preview_url"] is None:
-                print("no prev found")
-                to_delete.append(key)
-        del song["song_info"]["available_markets"]
-        del song["song_info"]["album"]["available_markets"]
+                orig = song
+                print(f"Checking {song['song_info']['name']}")
+                for market_iter in markets:
+                    print(market_iter, orig["song_info"]["uri"])
+                    try:
+                        get_song = sp.track(
+                            orig["song_info"]["uri"], market=market_iter
+                        )
+                    except:
+                        break
+                    if get_song["preview_url"] is not None:
+                        song["song_info"]["preview_url"] = get_song["preview_url"]
+                        break
+                if song["song_info"]["preview_url"] is None:
+                    print("no prev found")
+                    to_delete.append(key)
+            del song["song_info"]["available_markets"]
+            del song["song_info"]["album"]["available_markets"]
+        except KeyError:
+            print("rats")
 
     for key in to_delete:
         del song_list[key]
@@ -443,7 +465,6 @@ def get_friend_list(webAccessToken, userID):
             "image_url": "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1754867604750626&height=300&width=300&ext=1683651933&hash=AeSBvSJPC64kAaeDzcw",
             "name": "Adam Stephens",
         },
-        "hungryrussianft": {"name": "hungryrussianft"},
     }
 
 
@@ -470,3 +491,6 @@ def get_playlist_from_user(webAccessToken, userID):
             return {}
     except ValueError as e:
         return 0
+
+
+main()
