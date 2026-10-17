@@ -2,5 +2,5 @@ requests
 spotipy
 alive_progress
 aiohttp
-# The bot uses the v4 API; v5 is not compatible
-discord-py-interactions==4.4.0
+# interactions.py v5 (v4 is unmaintained and fails on Python 3.14)
+discord-py-interactions>=5.16,<6

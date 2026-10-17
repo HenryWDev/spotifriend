@@ -27,6 +27,8 @@ py_build/
 
 ## Setup
 
+Requires Python 3.10 or newer (tested on 3.14).
+
 ```sh
 cd py_build
 pip install -r requirements.txt
