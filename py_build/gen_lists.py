@@ -1,74 +1,37 @@
-from api_manager import get_song_list
-import pprint
-import random
-import configparser
-from spotipy.oauth2 import SpotifyOAuth
-from pprint import pprint
-import spotipy
-import json
+"""Scrape your friends' playlists and save the game data files.
+
+Run this before starting the bot, and again whenever you want fresh songs:
+
+    python gen_lists.py
+"""
+
+import logging
+
+from config import (
+    NORMALISED_LIST_PATH,
+    PEOPLE_LIST_PATH,
+    PLAYLIST_LIST_PATH,
+    SONG_LIST_PATH,
+    save_json,
+    spotify_client,
+)
+from spotify_scraper import scrape
 
 
-SPOTIPY_REDIRECT_URI = "http://localhost:8080"
-SCOPE = "user-modify-playback-state"
+def main():
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
-config = configparser.ConfigParser()
-config.read("config.ini")
+    data = scrape(spotify_client())
 
+    save_json(SONG_LIST_PATH, data["song_list"])
+    save_json(PEOPLE_LIST_PATH, data["people_list"])
+    save_json(PLAYLIST_LIST_PATH, data["playlist_list"])
+    save_json(NORMALISED_LIST_PATH, data["normalised_list"])
 
-def maine():
-    """"""
-    sp = spotipy.Spotify(
-        auth_manager=SpotifyOAuth(
-            client_id=config["creds"]["SPOTIPY_CLIENT_ID"],
-            client_secret=config["creds"]["SPOTIPY_CLIENT_SECRET"],
-            redirect_uri=SPOTIPY_REDIRECT_URI,
-            scope=SCOPE,
-        )
-    )
-    song_list, people_list, playlist_list = get_song_list(sp)
-
-    random_song = random.choice(list(song_list.values()))
-
-    pprint(random_song["song_info"]["name"])
-    json_object = json.dumps(song_list, indent=4)
-    with open("songlist.json", "w") as outfile:
-        outfile.write(json_object)
-
-    json_object = json.dumps(people_list, indent=4)
-    with open("people_list.json", "w") as outfile:
-        outfile.write(json_object)
-
-    json_object = json.dumps(playlist_list, indent=4)
-    with open("playlist_list.json", "w") as outfile:
-        outfile.write(json_object)
-
-    normalised_list = dict()
-    for person in people_list:
-        normalised_list[person] = []
-
-    for song in song_list:
-        origins = song_list[song]["origins"]
-        for origin in origins:
-            normalised_list[origin].append(song)
-
-    json_object = json.dumps(normalised_list, indent=4)
-    with open("normalised_list.json", "w") as outfile:
-        outfile.write(json_object)
-
-    print(" ")
-    print("possible options:")
-    for friend in people_list.keys():
-        print(people_list[friend]["display_name"])
-
-    sp.start_playback(uris=[random_song["song_info"]["uri"]])
-
-    print(" ")
-    print("correct options:")
-    correct_answers = random_song["origins"].keys()
-    for friend in correct_answers:
-        print(people_list[friend]["display_name"])
-    quit()
+    print(f"\nSaved {len(data['song_list'])} songs from {len(data['playlist_list'])} playlists.")
+    for friend_id, songs in data["normalised_list"].items():
+        print(f"  {data['people_list'][friend_id]['display_name']}: {len(songs)} songs")
 
 
 if __name__ == "__main__":
-    maine()
+    main()
